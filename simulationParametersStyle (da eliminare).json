@@ -1,0 +1,225 @@
+    {   "QUESTI PARAMETRI SONO COPIA INCOLLATI, SONO FITTIZI":"",
+      "processInstances": [
+        {
+          "type": "A",
+          "count": "15"
+        },
+        {
+          "type": "B",
+          "count": "35"
+        }
+      ],
+      "startDateTime": "2024-03-13T08:00:00",
+      "currency": "EUR",
+      "arrivalRateDistribution": {
+        "type": "FIXED",
+        "mean": "60",
+        "arg1": "NaN",
+        "arg2": "NaN",
+        "timeUnit": "minutes"
+      },
+      "timetables": [
+        {
+          "name": "Default",
+          "rules": {
+            "rule": {
+              "fromTime": "09:00:00",
+              "toTime": "17:00:00",
+              "fromWeekDay": "MONDAY",
+              "toWeekDay": "FRIDAY"
+            }
+          }
+        },
+        {
+          "name": "24/7",
+          "rules": {
+            "rule": {
+              "fromTime": "00:00:00",
+              "toTime": "23:59:59",
+              "fromWeekDay": "MONDAY",
+              "toWeekDay": "SUNDAY"
+            }
+          }
+        }
+      ],
+      "resources": [
+        {
+          "name": "Res1",
+          "totalAmount": "1",
+          "costPerHour": "1",
+          "timetableName": "QBP_DEFAULT_TIMETABLE"
+        },
+        {
+          "name": "Res2",
+          "totalAmount": "2",
+          "costPerHour": "2",
+          "timetableName": "QBP_247_TIMETABLE"
+        }
+      ],
+      "elements": [
+        {
+          "worklistId":"1",
+          "elementId": "Activity_10x08n3",
+          "fixedCost": "5",
+          "costThreshold": "1000",
+          "durationThreshold": "1000",
+          "durationDistribution": {
+            "type": "FIXED",
+            "mean": "5",
+            "arg1": "NaN",
+            "arg2": "NaN",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1",
+              "_COMMENTO":"GROUP indica che affinchè la task sia svolgibile devono essere presenti un amountNeeded di ogni risorsa di quel groupId (quindi è un AND)"
+            },
+            {
+              "resourceName": "Res1",
+              "amountNeeded": "2",
+              "groupId":"1"
+            },
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "3",
+              "groupId":"2"
+            }
+          ],
+          "durationThresholdTimeUnit": "seconds"
+        },
+        {
+          "worklistId":"1",
+          "elementId": "Activity_14rjj9v",
+          "fixedCost": "4",
+          "costThreshold": "NaN",
+          "durationThreshold": "NaN",
+          "durationDistribution": {
+            "type": "NORMAL",
+            "mean": "5",
+            "arg1": "2",
+            "arg2": "NaN",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            },
+            {
+              "resourceName": "Res1",
+              "amountNeeded": "2",
+              "groupId":"1"
+            }
+          ],
+          "durationThresholdTimeUnit": "seconds"
+        },
+        {
+          "elementId": "Activity_14rjj9v",
+          "durationDistribution": {
+            "type": "FIXED",
+            "mean": "11",
+            "arg1": "0",
+            "arg2": "0",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            }
+          ]
+        },
+        {
+          "elementId": "Activity_0qykc8o",
+          "durationDistribution": {
+            "type": "FIXED",
+            "mean": "12",
+            "arg1": "0",
+            "arg2": "0",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            }
+          ]
+        },
+        {
+          "elementId": "Activity_1ijxuyk",
+          "durationDistribution": {
+            "type": "EXPONENTIAL",
+            "mean": "22",
+            "arg1": "0",
+            "arg2": "0",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            }
+          ]
+        },
+        {
+          "elementId": "Activity_12afiek",
+          "durationDistribution": {
+            "type": "FIXED",
+            "mean": "35",
+            "arg1": "1",
+            "arg2": "1",
+            "timeUnit": "minutes"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            }
+          ]
+        },
+        {
+          "elementId": "Activity_182s0e0",
+          "durationDistribution": {
+            "type": "FIXED",
+            "mean": "1",
+            "arg1": "0",
+            "arg2": "0",
+            "timeUnit": "seconds"
+          },
+          "resourceIds": [
+            {
+              "resourceName": "Res2",
+              "amountNeeded": "1",
+              "groupId":"1"
+            }
+          ]
+        }
+      ],
+      "sequenceFlows": [
+        {
+          "elementId": "Flow_16n1wa9",
+          "executionProbability": "0.5",
+          "types": [
+            {
+              "type": "A"
+            },
+            {
+              "type": "B"
+            }
+          ],
+          "_COMMENTO":"types indica che se sono in un istanza di quel type, allora la scelta è forzata su questa direzione"
+        },
+        {
+          "elementId": "Flow_0d86tug",
+          "executionProbability": "0.5"
+        }
+      ]
+    }

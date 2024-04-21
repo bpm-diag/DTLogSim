@@ -17,5 +17,4 @@ To run: use STARTER.BAT
 
 
 
------------------WARNING----------------
-the original repo with all the commits is: https://github.com/matteosimonetti99/Tesi_magistrale/
+(the original repo with all the commits is: https://github.com/matteosimonetti99/Tesi_magistrale/)

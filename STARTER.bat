@@ -1,7 +1,7 @@
 call parse.bat
 @echo off
-REM Change directory to the "3.12" folder
-cd 3.12
+REM Change directory to the "3.11" folder
+cd 3.11
 
 REM Call the Python interpreter from your virtual environment
 ..\myenv312\Scripts\python.exe main.py

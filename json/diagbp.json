@@ -3,17 +3,17 @@
   "processInstances": [
       {
           "type": "a",
-          "count": "1"
+          "count": "3"
       },
       {
         "type": "b",
-        "count": "1"
+        "count": "3"
       }
   ],
-  "startDateTime": "2024-04-15T18:00:00",
+  "startDateTime": "2024-04-16T18:00:00",
   "arrivalRateDistribution": {
       "type": "FIXED",
-      "mean": "10",
+      "mean": "0",
       "arg1": "",
       "arg2": "",
       "timeUnit": "minutes"
@@ -29,7 +29,7 @@
         "toWeekDay": "FRIDAY"
       },
       {
-        "fromTime": "15:00:00",
+        "fromTime": "17:30:00",
         "toTime": "19:00:00",
         "fromWeekDay": "MONDAY",
         "toWeekDay": "FRIDAY"
@@ -57,23 +57,39 @@
   "resources": [
       {
         "name": "Res1",
-        "totalAmount": "2",
+        "totalAmount": "1",
         "costPerHour": "1",
-        "timetableName": "Default"
+        "timetableName": "Default",
+        "setupTime": {
+          "type": "",
+          "mean": "",
+          "arg1": "",
+          "arg2": "",
+          "timeUnit": ""
+        },
+        "maxUsage": ""
       },
       {
         "name": "Res2",
         "totalAmount": "3",
         "costPerHour": "2",
-        "timetableName": "24/7"
+        "timetableName": "Default",
+        "setupTime": {
+          "type": "fixed",
+          "mean": "10",
+          "arg1": "",
+          "arg2": "",
+          "timeUnit": "seconds"
+        },
+        "maxUsage": "10"
       }
     ],
   "elements": [
       {
           "elementId": "Activity_10x08n3",
-          "worklistId": "1",
-          "fixedCost": "",
-          "costThreshold": "",
+          "worklistId": "",
+          "fixedCost": "3",
+          "costThreshold": "5",
           "durationDistribution": {
               "type": "fixed",
               "mean": "10",
@@ -81,8 +97,8 @@
               "arg2": "",
               "timeUnit": "seconds"
           },
-          "durationThreshold": "",
-          "durationThresholdTimeUnit": "",
+          "durationThreshold": "1",
+          "durationThresholdTimeUnit": "minutes",
           "resourceIds": [
               {
                 "resourceName": "Res2",
@@ -103,7 +119,7 @@
       },
       {
           "elementId": "Activity_14rjj9v",
-          "worklistId": "",
+          "worklistId": "1",
           "fixedCost": "",
           "costThreshold": "",
           "durationDistribution": {
@@ -177,8 +193,8 @@
       },
       {
           "elementId": "Activity_12afiek",
-          "worklistId": "",
-          "fixedCost": "",
+          "worklistId": "1",
+          "fixedCost": "1",
           "costThreshold": "",
           "durationDistribution": {
               "type": "fixed",
@@ -192,14 +208,20 @@
           "resourceIds": [
               {
                 "resourceName": "Res2",
-                "amountNeeded": "1",
+                "amountNeeded": "3",
                 "groupId":"1"
-              }]
+              },
+              {
+                "resourceName": "Res1",
+                "amountNeeded": "1",
+                "groupId":"2"
+              }
+              ]
       },
       {
           "elementId": "Activity_182s0e0",
           "worklistId": "",
-          "fixedCost": "",
+          "fixedCost": "2",
           "costThreshold": "",
           "durationDistribution": {
               "type": "fixed",
@@ -248,6 +270,8 @@
           }
       ]
       }
-  ]
+  ],
+  "catchEvents":[],
+  "logging_opt":1
 }
 

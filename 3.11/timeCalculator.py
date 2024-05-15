@@ -15,10 +15,14 @@ def convert_to_seconds(input_dict):
     type_ = input_dict["type"].upper()
 
     # Get the mean value
-    mean = float(input_dict["mean"])
+    if input_dict["mean"] != "":
+        mean = float(input_dict["mean"])
+    else:
+        mean = 0.0  # or any other default value
 
     # Get the time unit
-    time_unit = input_dict["timeUnit"]
+    time_unit = input_dict["timeUnit"].lower()
+
 
     # Initialize duration
     duration = 0

@@ -1,5 +1,4 @@
 import sys
-sys.path.append("..") #se ci sono errori è questo da 3.11 a 3.12
 from bpmn_python import bpmn_diagram_rep as diagram
 import xml.etree.ElementTree as ET
 import json
@@ -25,8 +24,9 @@ if os.path.isfile(diagbpPath):
 if os.path.isfile(bpmnPath):
     os.remove(bpmnPath)
 
-if len(sys.argv) > 1 and sys.argv[1].strip():
-    baseName=sys.argv[1]
+baseNameInput=input("Enter bpmn name (without .bpmn): ")
+if baseNameInput != "":
+    baseName=baseNameInput
 
 # diagbp TAG
 name="../bpmn_input_file_here/"+baseName+".bpmn"
@@ -68,15 +68,19 @@ for process_id, process_element in bpmnGraph.process_elements.items():
         node_info = bpmnGraph.diagram_graph.node[node_id]
         node_type = node_info.get('type', 'Unknown')
         node_subtype = None
-        if node_type == 'intermediateCatchEvent':
+        attached_to_id = None
+        if node_type == 'intermediateCatchEvent' or node_type == 'boundaryEvent' or node_type == 'endEvent':
             # Get the specific type of the intermediate catch event
             event_definitions = node_info.get('event_definitions', [])
             for event_definition in event_definitions:
                 node_subtype = event_definition.get('definition_type', 'Unknown')
+        if node_type == 'boundaryEvent':
+            attached_to_id = node_info.get('attachedToRef')
         node_details[node_id] = {
             'name': node_info.get('node_name', 'Unnamed'),
             'type': node_type,
-            'subtype': node_subtype,  # Add subtype to the dictionary
+            'subtype': node_subtype,
+            'attached_to': attached_to_id,
         }
         if node_info.get('type', 'Unknown') == 'subProcess':
             # Add subprocess details
@@ -85,7 +89,7 @@ for process_id, process_element in bpmnGraph.process_elements.items():
                 child_node_info = bpmnGraph.diagram_graph.node[child_node_id]
                 child_node_type = child_node_info.get('type', 'Unknown')
                 child_node_subtype = None
-                if child_node_type == 'intermediateCatchEvent':
+                if child_node_type == 'intermediateCatchEvent' or child_node_type == 'boundaryEvent' or child_node_type == 'endEvent':
                     # Get the specific type of the intermediate catch event
                     child_event_definitions = child_node_info.get('event_definitions', [])
                     for child_event_definition in child_event_definitions:
@@ -93,7 +97,7 @@ for process_id, process_element in bpmnGraph.process_elements.items():
                 subprocess_details[child_node_id] = {
                     'name': child_node_info.get('node_name', 'Unnamed'),
                     'type': child_node_type,
-                    'subtype': child_node_subtype,  # Add subtype to the dictionary
+                    'subtype': child_node_subtype,
                 }
             node_details[node_id]['subprocess_details'] = subprocess_details
 

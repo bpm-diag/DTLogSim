@@ -164,6 +164,7 @@
                     "name": "main_1",
                     "type": "task",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Gateway_1ngxc9b"
@@ -173,6 +174,7 @@
                     "name": "par11",
                     "type": "task",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Activity_0qykc8o"
@@ -182,6 +184,7 @@
                     "name": "par12",
                     "type": "task",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [
                         "Activity_182s0e0"
                     ],
@@ -193,6 +196,7 @@
                     "name": "par22",
                     "type": "task",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Gateway_0xussxu"
@@ -202,6 +206,7 @@
                     "name": "close parallel",
                     "type": "parallelGateway_close",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Gateway_0a5f12j"
@@ -211,6 +216,7 @@
                     "name": "",
                     "type": "startEvent",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Gateway_01s1pgm"
@@ -220,6 +226,7 @@
                     "name": "close loop",
                     "type": "exclusiveGateway",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Activity_10x08n3"
@@ -229,6 +236,7 @@
                     "name": "open loop",
                     "type": "exclusiveGateway",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Gateway_01s1pgm",
@@ -239,6 +247,7 @@
                     "name": "",
                     "type": "endEvent",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": []
                 },
@@ -246,6 +255,7 @@
                     "name": "par21 (subproc)",
                     "type": "subProcess",
                     "subtype": null,
+                    "attached_to": null,
                     "subprocess_details": {
                         "Event_1njp3xz": {
                             "name": "",
@@ -282,6 +292,7 @@
                     "name": "Parallel open",
                     "type": "parallelGateway",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Activity_14rjj9v",
@@ -307,6 +318,7 @@
                     "name": "",
                     "type": "startEvent",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [
                         "Activity_10x08n3"
                     ],
@@ -318,6 +330,7 @@
                     "name": "sec_1",
                     "type": "task",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Event_016qlk7"
@@ -326,7 +339,8 @@
                 "Event_0iqs5ri": {
                     "name": "msg end 2_1",
                     "type": "endEvent",
-                    "subtype": null,
+                    "subtype": "messageEventDefinition",
+                    "attached_to": null,
                     "previous": [],
                     "next": []
                 },
@@ -334,6 +348,7 @@
                     "name": "msg2_1",
                     "type": "intermediateThrowEvent",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": [
                         "Event_0iqs5ri"
@@ -343,6 +358,7 @@
                     "name": "",
                     "type": "dataObject",
                     "subtype": null,
+                    "attached_to": null,
                     "previous": [],
                     "next": []
                 }

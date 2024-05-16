@@ -254,14 +254,15 @@ class Process:
             rows.append([self.num, node_id, current_time, status, nodeType,self.name,self.instance_type],)
 
     def printState(self, node, node_id, inSubProcess):
-        if node['subtype'] is not None:
-            node['type']=node['type']+"/"+node['subtype']
-        if node['type'] == 'subProcess':
-            print(f"#{self.num}|{self.name}: {node_id} (subprocess {node['name']} just started), instance_type:{self.instance_type}. time: {self.env.now}.")
+        node_copy = node.copy()
+        if node_copy['subtype'] is not None:
+            node_copy['type']=node_copy['type']+"/"+node_copy['subtype']
+        if node_copy['type'] == 'subProcess':
+            print(f"#{self.num}|{self.name}: {node_id} (subprocess {node_copy['name']} just started), instance_type:{self.instance_type}. time: {self.env.now}.")
         elif inSubProcess == True:
-            print(f"#{self.num}|{self.name} (inside subprocess): {node_id} ({node['name']}), type: {node['type']}, instance_type:{self.instance_type}. time: {self.env.now}.")
+            print(f"#{self.num}|{self.name} (inside subprocess): {node_id} ({node_copy['name']}), type: {node_copy['type']}, instance_type:{self.instance_type}. time: {self.env.now}.")
         else:
-            print(f"#{self.num}|{self.name}: {node_id} ({node['name']}), type: {node['type']}, instance_type:{self.instance_type}. time: {self.env.now}.")
+            print(f"#{self.num}|{self.name}: {node_id} ({node_copy['name']}), type: {node_copy['type']}, instance_type:{self.instance_type}. time: {self.env.now}.")
 
     def run(self):
         yield self.env.timeout(self.start_delay) #delay start because of arrival rate.
@@ -632,7 +633,7 @@ class Process:
                     if smallestTimer is None or timer < smallestTimer:
                         smallestTimer = timer
                         nextNodeToVisit=nextNode['next'][0]
-            while (not ready) and waitedTimeInEventBasedGateway < smallestTimer: #while no msg has been received and the smallest timer is not over yet
+            while (not ready) and (smallestTimer is None or waitedTimeInEventBasedGateway < smallestTimer): #while no msg has been received and the smallest timer is not over yet
                 for next_node_id in node['next']:
                     if subprocess_node is None:
                         nextNode = self.process_details['node_details'][next_node_id]

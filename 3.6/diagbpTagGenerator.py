@@ -110,6 +110,8 @@ def diagbp(diagbpPath, bpmn_dict):
             if key=="timetableName":
                 keyDisplay="timetable name (use the same name given before to the timetable you are referring to)"
             value=input(f"Insert the {keyDisplay} for the resource type n.{i} (insert empty value to skip to elements): ")
+            if key=="costPerHour" and value=="":
+                value="0"
             if not value:
                 print("\n")
                 exit_loop = True 
@@ -122,23 +124,27 @@ def diagbp(diagbpPath, bpmn_dict):
         for key in keys:
             keyDisplay=key
             if key=="type":
-                keyDisplay="setup time type (Fixed, Normal, Exponential, Uniform, Triangular, Log-Normal, Gamma, Histogram)"
+                keyDisplay="setup time type (Fixed, Normal, Exponential, Uniform, Triangular, Log-Normal, Gamma, Histogram), Leave empty to avoid setup time"
             if key=="timeUnit":
                 keyDisplay="time unit (seconds/minutes/hours/days)"
             value=input(f"Insert the {keyDisplay} for the arrival rate distribution: ")
             if key=="type":
+                if value="":
+                    break
                 value=value.upper()
             setupTime[key] = value
         if not setupTime:
             setupTime={
-                "type": "FIXED",
-                "mean": "0",
+                "type": "",
+                "mean": "",
                 "arg1": "",
                 "arg2": "",
-                "timeUnit": "seconds"
+                "timeUnit": ""
             }
-        resource["setupTime"]=setupTime
-        resource["maxUsages"]=input(f"Insert the max amount of usages for the resource before needing maintenance: ")
+            resource["maxUsages"]=""
+        else:
+            resource["setupTime"]=setupTime
+            resource["maxUsages"]=input(f"Insert the max amount of usages for the resource before needing maintenance: ")            
         resources.append(resource)
     
     #ELEMENTS

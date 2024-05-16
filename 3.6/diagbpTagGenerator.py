@@ -129,7 +129,7 @@ def diagbp(diagbpPath, bpmn_dict):
                 keyDisplay="time unit (seconds/minutes/hours/days)"
             value=input(f"Insert the {keyDisplay} for the arrival rate distribution: ")
             if key=="type":
-                if value="":
+                if value=="":
                     break
                 value=value.upper()
             setupTime[key] = value

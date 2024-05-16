@@ -100,9 +100,9 @@ def diagbp(diagbpPath, bpmn_dict):
     print("-------------------RESOURCES----------------------")
     resources=[]
     exit_loop = False
-    keys=["name","totalAmount", "costPerHour", "timetableName"]
     i=0
     while True:
+        keys=["name","totalAmount", "costPerHour", "timetableName"]
         i=i+1
         resource={}
         for key in keys:
@@ -127,24 +127,24 @@ def diagbp(diagbpPath, bpmn_dict):
                 keyDisplay="setup time type (Fixed, Normal, Exponential, Uniform, Triangular, Log-Normal, Gamma, Histogram), Leave empty to avoid setup time"
             if key=="timeUnit":
                 keyDisplay="time unit (seconds/minutes/hours/days)"
-            value=input(f"Insert the {keyDisplay} for the arrival rate distribution: ")
+            value=input(f"Insert the {keyDisplay} for setup time: ")
             if key=="type":
                 if value=="":
                     break
                 value=value.upper()
             setupTime[key] = value
         if not setupTime:
-            setupTime={
+            resource["setupTime"]={
                 "type": "",
                 "mean": "",
                 "arg1": "",
                 "arg2": "",
                 "timeUnit": ""
             }
-            resource["maxUsages"]=""
+            resource["maxUsage"]=""
         else:
             resource["setupTime"]=setupTime
-            resource["maxUsages"]=input(f"Insert the max amount of usages for the resource before needing maintenance: ")            
+            resource["maxUsage"]=input(f"Insert the max amount of usages for the resource before needing maintenance: ")            
         resources.append(resource)
     
     #ELEMENTS

@@ -27,3 +27,7 @@ This software in facts works using 2 different versions of python due to library
 
 
 To run without Docker: use STARTER.BAT
+
+
+
+(the original repo with all the commits is: https://github.com/matteosimonetti99/Tesi_magistrale/)

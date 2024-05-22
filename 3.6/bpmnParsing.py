@@ -18,6 +18,10 @@ tagName="diagbp"
 diagbpPath="../json/diagbp.json"
 bpmnPath="../json/bpmn.json"
 
+json_dir = "../json"  # Relative path to the json directory
+# Create the directory if it doesn't exist
+if not os.path.exists(json_dir):
+    os.makedirs(json_dir)
 
 if os.path.isfile(diagbpPath):
     os.remove(diagbpPath)
@@ -116,7 +120,9 @@ bpmnDictionary['process_elements'] = process_elements
 with open(bpmnPath, "w") as outfile:
     json.dump(bpmnDictionary, outfile, indent=4)
 
-if diagbp_tag is not None:
+if os.path.exists(diagbpPath):
+    pass
+elif diagbp_tag is not None:
     # Convert to string and remove the <diagbp> and </diagbp> tags
     diagbp_str = ET.tostring(diagbp_tag, encoding='unicode')
     diagbp_str = diagbp_str.replace('<'+tagName+'>', '').replace('</'+tagName+'>', '')

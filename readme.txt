@@ -2,10 +2,12 @@ To install with Docker:
 docker build -t diagbp .
 
 To run with Docker (substitute the paths):
-docker run -it --rm -v "AbsolutePathOfTheFolderWithBpmnFiles:/app/bpmn_input_file_here" -v "AbsolutePathOfTheFolderWhereToSaveLogFiles:/app/logs" diagbp
+docker run -it --rm -v "AbsolutePathOfTheFolderWithBpmnFiles:/app/bpmn_input_file_here" -v "AbsolutePathOfTheFolderWhereToSaveLogFiles:/app/logs" [-v "AbsolutePathOfTheFolderWithConfigFile:/app/json"] diagbp
 
 Example run:
 docker run -it --rm -v "D:\User\Documents\GitHub\Tesi_magistrale\bpmn_input_file_here:/app/bpmn_input_file_here" -v "D:\User\Documents\GitHub\Tesi_magistrale\logs:/app/logs" diagbp 
+
+The config file is optional and for advanced usage. If used, the config file needs to be called "diagbp.json" and it must contain what is contained in the diagbp tag in the bpmn file
 
 
 
@@ -27,7 +29,3 @@ This software in facts works using 2 different versions of python due to library
 
 
 To run without Docker: use STARTER.BAT
-
-
-
-(the original repo with all the commits is: https://github.com/matteosimonetti99/Tesi_magistrale/)

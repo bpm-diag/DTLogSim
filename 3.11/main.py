@@ -11,6 +11,7 @@ import pm4py
 import pandas as pd
 import csv
 import threading
+import os
 
 
 #to remove, credo
@@ -21,9 +22,9 @@ sys.setrecursionlimit(100000)
 
 
 
-#Put those 2 to true to have the log in console of resources locked and unlocked and timetable management
+#Put resourcesOutputConsole and timetableOutputConsole to true if you want the log in console of resources locked/unlocked and timetable management
 resourcesOutputConsole=False
-testing=False
+debug1=False
 debug=False
 timetableOutputConsole=False
 costsOutputConsole=True
@@ -64,6 +65,9 @@ except Exception as e:
     sys.exit()
 
 #csv log
+logs_dir = "../logs"
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
 csv_file = "../logs/log.csv"
 fields = ['traceId', 'activity', 'timestamp', 'status', 'nodeType', 'poolName','instanceType']
 rows=[]
@@ -80,7 +84,7 @@ resources = diagbp['resources']
 timetables = diagbp['timetables']
 catchEvents = diagbp['catchEvents']
 
-# Generate the delays
+# Generate the delays, calling them delay is kinda wrong because delays is in fact an array of starting times, so like 0, 5, 10...
 delay_between_instances = diagbp['arrivalRateDistribution'] #array contains: type, mean, arg1, arg2
 delays = [0]
 total_delay = 0
@@ -98,7 +102,7 @@ totalCost={} #task_costs are summed here
 timeUsedPerResource={} #resources time being used are summed here
 worklist_resources={}
 class Process:
-    executed_nodes = {}  # make executed_nodes a dictionary of sets
+    executed_nodes = {}  # make executed_nodes a dictionary of sets, once a node is executed in this instance, it is saved here
     startDateTime = diagbp['startDateTime']
     terminateEndEvent={} # dictionary of true or false, to tell if that process has been terminated or not
     subprocessTerminate={} #this is used for subprocesses for terminate end events
@@ -135,47 +139,52 @@ class Process:
         for resource_name, resource_info in global_resources.items():
             timeUsedPerResource[resource_name]=0.0
         
-    def update_resources(self,resource_obj, mode, resource_name, node_id):
+    def update_resources(self,resource_obj, mode, resource_name, node_id): #this function handles setup time for resources
         #resource_tuple is: simpyRes, cost, timetableName, lastInstanceType, setupTime, maxUsage, actualUsage, lock
-        #mode can either be, increment, instanceTypeChange
-        usura=False
+        #mode can either be, increment, instanceTypeChange. First mode means that same instanceType has arrived, counter of usages needs to incremented; second mode is
+        #for when the instance that comes has a different type than what the resource was previously used for, so it needs some time to prepare.
+        usury=False
         instanceCambio=False
-
-        for asd in global_resources[resource_name]:
-            if asd[0] is resource_obj:
-                resource_tuple=asd
-        
+        #find the tuple where the resource obj is the one we want to update, tuple structure is in the first comment of function
+        for tuple_ in global_resources[resource_name]:
+            if tuple_[0] is resource_obj:
+                resource_tuple=tuple_
+        #if this resource doesn't involve setup times
         if not resource_tuple[4]["type"]:
             return
 
         if mode=="increment":
+            #if usage limit reached put usage to 0 and flag usury, otherwise just increment by 1
             if int(resource_tuple[6].level) + 1 >= int(resource_tuple[5]):
                 resource_tuple[6].get(int(resource_tuple[5])-1)
-                usura=True
+                usury=True
             else:
                 resource_tuple[6].put(1)
+
         elif mode=="instanceTypeChange":
             instanceCambio=True
+            #usage to 0
             while resource_tuple[6].level > 0:
                 yield resource_tuple[6].get(1)
         
         logg=""
-        if usura==True:
+        if usury==True:
             logg="worn"
         elif instanceCambio==True:
             logg="instanceTypeChange"
 
         setup_time = timeCalculator.convert_to_seconds(resource_tuple[4])
-        # Update currentUsages and check for maintenance
+        # Update currentUsages
         for i, res_tuple in enumerate(global_resources[resource_name]):
             if res_tuple[0] is resource_tuple[0]:
-                self.xeslog(node_id,"startSetupTime",logg) if usura or instanceCambio else None
-                print(f"Cambio usura {resource_tuple[0]} {self.env.now}") if logSetupTime and usura else None
+                self.xeslog(node_id,"startSetupTime",logg) if usury or instanceCambio else None
+                print(f"Cambio usury {resource_tuple[0]} {self.env.now}") if logSetupTime and usury else None
                 print(f"Cambio instance_type {resource_tuple[0]} {self.env.now}") if logSetupTime and instanceCambio else None
-                if instanceCambio or usura:
-                    yield self.env.timeout(setup_time)  # Wait for setup time
+                if instanceCambio or usury:
+                    yield self.env.timeout(setup_time)
                     print(f"Fine cambio {resource_tuple[0]} {self.env.now}")
-                self.xeslog(node_id,"endSetupTime",logg) if usura or instanceCambio else None
+                self.xeslog(node_id,"endSetupTime",logg) if usury or instanceCambio else None
+                #update resource by locking resource first
                 with res_tuple[7]:
                     global_resources[resource_name][i] = (
                         res_tuple[0],  # simpy resource
@@ -191,7 +200,7 @@ class Process:
 
 
     
-    def is_in_timetable(self, timetable_name):
+    def is_in_timetable(self, timetable_name): #this func is used when gathering resources for a task, to check if a res is in shift
         start_time = Process.startDateTime
         start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S")
         current_time = start_time + timedelta(seconds=self.env.now)
@@ -254,7 +263,7 @@ class Process:
             rows.append([self.num, node_id, current_time, status, nodeType,self.name,self.instance_type],)
 
     def printState(self, node, node_id, inSubProcess):
-        node_copy = node.copy()
+        node_copy = node.copy() #to avoid changing data in node due to the first if
         if node_copy['subtype'] is not None:
             node_copy['type']=node_copy['type']+"/"+node_copy['subtype']
         if node_copy['type'] == 'subProcess':
@@ -266,11 +275,12 @@ class Process:
 
     def run(self):
         yield self.env.timeout(self.start_delay) #delay start because of arrival rate.
-        start_node_id = next((node_id for node_id, node in self.process_details['node_details'].items() if node['type'] == 'startEvent'), None)
+        start_node_id = next((node_id for node_id, node in self.process_details['node_details'].items() if node['type'] == 'startEvent'), None) #find first start event
         if start_node_id is None:
             return
         yield from self.run_node(start_node_id)
-        #This zone is executed after all process instance is over:
+
+        #This zone is executed after instance is over, since run_node recursively visits all nodes:
         for element_id, duration_threshold in self.durationThresholds.items():
             if self.durationThresholds[element_id] is not None and self.durationThresholds[element_id] < 0.0:
                 abss=abs(self.durationThresholds[element_id])
@@ -284,6 +294,7 @@ class Process:
 
 
     def run_node(self, node_id, subprocess_node=None):
+        #if we are in a subprocess then the data is saved in a different section of bpmn.json (that has been saved to process_details)
         if subprocess_node is None:
             node = self.process_details['node_details'][node_id]
             printFlag=False
@@ -291,7 +302,7 @@ class Process:
             node = self.process_details['node_details'][subprocess_node]['subprocess_details'][node_id]
             printFlag=True
 
-        #if this process met a terminate end event anywhere, stop execution
+        #if this instance met a terminate end event anywhere, stop execution
         if Process.terminateEndEvent[self.num]==True:
             return
     
@@ -312,13 +323,10 @@ class Process:
             if subprocess_node is not None:
                 idd,error_node = next(((idd,node) for idd, node in self.process_details['node_details'].items() if node['type'] == 'boundaryEvent' and node['subtype'] == 'messageEventDefinition' and node['attached_to'] == subprocess_node), (None, None))
                 if idd is not None: #if there is a boundary event of type msg
-                    #print("handling excp1")
                     if any(prev_node in Process.executed_nodes[self.num] for prev_node in error_node['previous']): #if some msg arrived to it
-                        #print("handling excp2")
                         self.subprocessExternalException[subprocess_node]=True
                     has_exception_been_handled = idd in Process.executed_nodes[self.num]
                     if self.subprocessExternalException[subprocess_node]==True and not has_exception_been_handled:
-                        #print("handling excp3")
                         yield from self.run_node(idd, None)
                         return
                     elif self.subprocessExternalException[subprocess_node]==True and has_exception_been_handled:
@@ -326,15 +334,9 @@ class Process:
                 if Process.subprocessTerminate[self.num][subprocess_node]==True: 
                     return 
 
-            #check if terminate end events happened
-            if Process.terminateEndEvent[self.num]==True:
-                return
-
-            #wait for previous messages to be delivered
+            #wait for previous messages to be delivered (message pointing to this task)
             if len(node['previous'])>0:
                 while not all(prev_node in Process.executed_nodes[self.num] for prev_node in node['previous']):
-                    if Process.terminateEndEvent[self.num]==True:
-                        return
                     yield self.env.timeout(1)
             self.xeslog(node_id,"start",node['type'])
             taskTime=timeCalculator.convert_to_seconds(task_durations[node_id]) # task duration is used here, it is passed before to a converter that transforms the type/mean/arg1/arg2 to a value in seconds, this value the task duration is always different in each instance
@@ -342,27 +344,27 @@ class Process:
                 self.durationThresholds[node_id] -= taskTime
                 #print(self.durationThresholds)
 
-            # Resources zone
+
+            #RESOURCES zone
             taskNeededResources = task_resources[node_id]
             worklist_id = tasks_worklists[node_id]
-            if taskNeededResources:
+            if taskNeededResources: #if the task needs some resources
                 grouped_resources = {}
                 for res in taskNeededResources:
                     if res['groupId'] not in grouped_resources:
                         grouped_resources[res['groupId']] = []
                     grouped_resources[res['groupId']].append((res['resourceName'], int(res['amountNeeded'])))
-                # Check each group of resources
                 waited={}                                    
-                while True:
+                while True: #iterate till some resources can be allocated
                     resources_allocated = False
                     i = 0
-                    for group_id, resources in grouped_resources.items():
+                    for group_id, resources in grouped_resources.items(): # Check each group of resources
                         timetablebreakFlag=False
                         i += 1
-                        # Check if there are enough resources and within timetable for the group
+                        # Check if there are enough resources and within timetable for this group
                         requests = []
                         for resource_name, amount_needed in resources:
-                            if worklist_id and worklist_id in worklist_resources[self.num]:
+                            if worklist_id and worklist_id in worklist_resources[self.num]: #if this task has a worklist_id, then the set of resources is a subset of the full resources and it is taken from worklist_resources
                                 available_resources = []
                                 resources_in_timetable = []
                                 if resource_name in worklist_resources[self.num][worklist_id]:  # Check if the resource exists for this worklist_id
@@ -372,7 +374,7 @@ class Process:
                                         if self.is_in_timetable(resource_tuple[2]):
                                             resources_in_timetable.append(resource_tuple)
                                             
-                                timetablebreakFlag=True
+                                timetablebreakFlag=True #this avoids a false print of timetable error later
                                 
                             else:
                                 available_resources = [res for res in global_resources[resource_name] if self.is_in_timetable(res[2]) and res[0].count < res[0].capacity]
@@ -391,16 +393,18 @@ class Process:
                             else:
                                 #print(node_id + f"|group n.{i}| OK | {resource_name}: {len(available_resources)}/{len(global_resources[resource_name])} resources available, {amount_needed} needed")
                                 appended=0
-                                to_request = []  # New data structure to store resources to request later
+                                to_request = []  # New data structure to store resources to request later, needed due to possible setup_times
 
                                 #resource_tuple is: simpyRes, cost, timetableName, lastInstanceType, setupTime, maxUsage, actualUsage, lock
                                 for resource_tuple in available_resources:  
+                                    #debug zone
                                     print(f"to_req: {to_request}") if debug else None
                                     print(f"waited:{waited}") if debug else None                                 
-                                    if testing and not resource_tuple[4]=="" and resource_tuple[4]["type"]:
+                                    if debug1 and not resource_tuple[4]=="" and resource_tuple[4]["type"]:
                                         print(f"({resource_tuple[0]}, {resource_tuple[1]}, {resource_tuple[2]}, {resource_tuple[3]}, {resource_tuple[4]}, {resource_tuple[5]}, {resource_tuple[6].level}, {resource_tuple[7]})")
-                                    elif testing:
+                                    elif debug1:
                                         print(f"({resource_tuple[0]}, {resource_tuple[1]}, {resource_tuple[2]}, {resource_tuple[3]}")
+
                                     if appended == amount_needed:
                                         break
                                     # Checks if there is no setupTime or there is setupTime but no lastInstance, or there is lastInstance but it is our current instanceType
@@ -426,11 +430,12 @@ class Process:
                                 if appended == amount_needed:
                                     for resource_tuple in to_request:
                                         req = resource_tuple[0].request()
-                                        requests.append((resource_name, req, resource_tuple[1], resource_tuple[0],resource_tuple[8])) #8 is for update_resources funct
+                                        requests.append((resource_name, req, resource_tuple[1], resource_tuple[0],resource_tuple[8])) #[8] is the "mode" for update_resources funct, it was appended to the tuple in previous elif
 
                         # If all resources in the group can be allocated
                         print(f"requests: {len(requests)}") if debug else None
                         print(f"amount sum: {sum(amount for _, amount in resources)}") if debug else None
+
                         if len(requests) == sum(amount for _, amount in resources):
                             resources_allocated = True
                             waited={}                            
@@ -468,10 +473,31 @@ class Process:
                         yield self.env.timeout(1)  # If no group can be allocated, wait for a timeout
                     else:
                         break  # Break the while loop as resources are allocated
-                    #END resources
+            #END resources
+
 
             self.xeslog(node_id,"assign",node['type'])
             yield self.env.timeout(taskTime)
+            
+            #EXCEPTIONS check, the check was already done before but it might have happened some stuff during the timeout:
+            #check if terminate end events happened
+            if Process.terminateEndEvent[self.num]==True:
+                return
+            #check if external exceptions happened (if in a subprocess), if yes handle it or just return
+            if subprocess_node is not None:
+                idd,error_node = next(((idd,node) for idd, node in self.process_details['node_details'].items() if node['type'] == 'boundaryEvent' and node['subtype'] == 'messageEventDefinition' and node['attached_to'] == subprocess_node), (None, None))
+                if idd is not None: #if there is a boundary event of type msg
+                    if any(prev_node in Process.executed_nodes[self.num] for prev_node in error_node['previous']): #if some msg arrived to it
+                        self.subprocessExternalException[subprocess_node]=True
+                    has_exception_been_handled = idd in Process.executed_nodes[self.num]
+                    if self.subprocessExternalException[subprocess_node]==True and not has_exception_been_handled:
+                        yield from self.run_node(idd, None)
+                        return
+                    elif self.subprocessExternalException[subprocess_node]==True and has_exception_been_handled:
+                        return
+                if Process.subprocessTerminate[self.num][subprocess_node]==True: 
+                    return 
+
             self.xeslog(node_id,"complete",node['type'])
             Process.executed_nodes[self.num].add(node_id)
             self.printState(node,node_id,printFlag)
@@ -519,7 +545,7 @@ class Process:
                                 break
                 if forced_flow_target is not None:
                     break
-            # Check if node_probabilities is empty, if yes then the xor has only one next elem.
+            # Check if node_probabilities is empty, if yes then the xor has only one next elem. else if there is a forced target use it, else pick it at random.
             if not node_probabilities:
                 next_node_id = node['next'][0]
             elif forced_flow_target is not None:
@@ -532,10 +558,10 @@ class Process:
 
 
         elif node['type'] == 'parallelGateway':
-            # AND logic: run all paths concurrently and wait for all to finish, process is created for each path to ensure parallelism
+            # AND logic: run all paths concurrently and wait for all to finish
             events = []
             for next_node_id in node['next']:
-                process = self.env.process(self.run_node(next_node_id, subprocess_node))
+                process = self.env.process(self.run_node(next_node_id, subprocess_node)) # a process is created for each path to ensure parallelism
                 events.append(process)
             self.xeslog(node_id,"complete",node['type'])
             self.printState(node,node_id,printFlag)
@@ -560,20 +586,26 @@ class Process:
             return
             
         elif node['type'] == 'subProcess':
+            #set to false all exceptions at first
             self.subprocessExternalException[node_id]=False
             Process.subprocessTerminate[self.num][node_id]=False
             self.subprocessInternalError[node_id]=False
+            
+            #wait for msg to arrive, if any
             if len(node['previous'])>0:
                 while not all(prev_node in Process.executed_nodes[self.num] for prev_node in node['previous']):
                     yield self.env.timeout(1)
+
             self.xeslog(node_id,"start",node['type'])
             start_node_id = next(sub_node_id for sub_node_id, sub_node in node['subprocess_details'].items() if sub_node['type'] == 'startEvent')
             self.printState(node,node_id,printFlag)
             yield from self.run_node(start_node_id, node_id)
+
             Process.executed_nodes[self.num].add(node_id)
             next_node_id = node['next'][0]
-            # After the subprocess is executed, continue with the node next to the subprocess if no error end event
             self.xeslog(node_id,"complete",node['type'])
+
+            # After the subprocess is executed, continue with the node next to the subprocess if no error end event
             if self.subprocessInternalError[node_id]==False and self.subprocessExternalException[node_id]==False and Process.terminateEndEvent[self.num]==False:
                 yield from self.run_node(next_node_id, None)
             elif self.subprocessInternalError[node_id]==True: #if internal error happened, deal with it
@@ -601,7 +633,7 @@ class Process:
                 self.printState(node,node_id,printFlag)
                 yield from self.run_node(next_node_id, subprocess_node)
                 return
-            else: #otherwise treats it as a timer event, whatever it is
+            else: #otherwise treats it as a timer event, whatever subtype it is
                 next_node_id = node['next'][0]
                 Process.executed_nodes[self.num].add(node_id)
                 waitTime = catchEvents[node_id]
@@ -614,7 +646,7 @@ class Process:
                 return
         
         elif node['type'] == 'eventBasedGateway':
-            smallestTimer=None
+            smallestTimer=None #variable where the timer that has lower time to wait (attached to the eventBasedGateway) gets saved, if any
             ready=False
             waitedTimeInEventBasedGateway=0
             Process.executed_nodes[self.num].add(node_id)
@@ -632,7 +664,7 @@ class Process:
                     timer=timeCalculator.convert_to_seconds(catchEvents[next_node_id])
                     if smallestTimer is None or timer < smallestTimer:
                         smallestTimer = timer
-                        nextNodeToVisit=nextNode['next'][0]
+                        nextNodeToVisit=nextNode['next'][0] #sets this as next node to visit, can only be changed by a msg received later
             while (not ready) and (smallestTimer is None or waitedTimeInEventBasedGateway < smallestTimer): #while no msg has been received and the smallest timer is not over yet
                 for next_node_id in node['next']:
                     if subprocess_node is None:
@@ -642,7 +674,7 @@ class Process:
                         nextNode = self.process_details['node_details'][subprocess_node]['subprocess_details'][next_node_id]
                         printFlag=True
                     if nextNode['subtype'] == 'messageEventDefinition' and ready==False:
-                        ready=any(prev_node in Process.executed_nodes[self.num] for prev_node in nextNode['previous'])
+                        ready=any(prev_node in Process.executed_nodes[self.num] for prev_node in nextNode['previous']) #this updates the ready variable to leave the while loop above
                         if ready==True:
                             nextNodeToVisit=nextNode['next'][0]
                             break
@@ -650,11 +682,13 @@ class Process:
                 waitedTimeInEventBasedGateway+=1
 
             self.printState(nextNode,next_node_id,printFlag) # print the state of the intermediate catch event (timer or msg, whatever)
-            yield from self.run_node(nextNodeToVisit, subprocess_node) # now it visits the node 2 times forward because the catches have already been handled
+            self.xeslog(next_node_id,"complete",node['type'])        
+            yield from self.run_node(nextNodeToVisit, subprocess_node) # now it visits the node 2 times forward (2 times after the eventBasedGateway) because the catches have already been handled
             return
 
         elif node['type'] == 'boundaryEvent': 
             self.printState(node,node_id,printFlag)
+            self.xeslog(node_id,"complete",node['type'])
             Process.executed_nodes[self.num].add(node_id)
             next_node_id = node['next'][0]
             yield from self.run_node(next_node_id, subprocess_node)
@@ -689,7 +723,7 @@ def timeout_proc(simpy_resource,env,time):
     print(f"Initial setup completed for resource {simpy_resource} at time {env.now}")
     # You can add more actions here if needed, such as updating resource state
 
-#resource_tuple is: simpyRes, cost, timetableName, lastInstanceType, setupTime, maxUsage, actualUsage. Starts with actualUsage=MaxUsage so that it setups on first usage.
+#resource_tuple is: simpyRes, cost, timetableName, lastInstanceType, setupTime, maxUsage, actualUsage, lock. Starts with actualUsage=MaxUsage so that it setups on first usage.
 global_resources = {}
 for res in resources:
     resource_list = []
@@ -807,3 +841,13 @@ with open('../logs/logExtra.csv', 'w', newline='') as f:
 
 
 pm4py.write_xes(event_log, '../logs/log.xes')
+
+try:
+  os.remove(diagbpPath)
+except OSError as e:
+  print(f"Error deleting {diagbpPath}: {e}")
+
+try:
+  os.remove(bpmnPath)
+except OSError as e:
+  print(f"Error deleting {bpmnPath}: {e}")

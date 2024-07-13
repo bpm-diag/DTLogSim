@@ -54,4 +54,4 @@ RUN cd /
 
 
 # Run the Python scripts
-CMD /bin/bash -c "cd /app/3.6 && /usr/local/python3.6/bin/python3.6 /app/3.6/bpmnParsing.py && cd /app/3.11 && sleep 0.5 && /usr/local/python3.11/bin/python3.11 /app/3.11/main.py && cd /"
+CMD /bin/bash -c "cd /app/3.6 && /usr/local/python3.6/bin/python3.6 /app/3.6/bpmnParsing.py"

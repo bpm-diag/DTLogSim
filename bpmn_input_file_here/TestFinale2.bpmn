@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0gmpyo1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="17.6.4">
+  <bpmn:collaboration id="Collaboration_1ij0yi5">
+    <bpmn:participant id="Participant_1b15pxb" processRef="Process_13bcwlt" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_13bcwlt" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_008a1ir">
+      <bpmn:outgoing>Flow_1ce1pft</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_0kdmsvh">
+      <bpmn:incoming>Flow_1ce1pft</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fuambp</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1gx3ym8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_0h5f76m" name="1">
+      <bpmn:incoming>Flow_1fuambp</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rt3lgi</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1ixa4gk" name="2">
+      <bpmn:incoming>Flow_1gx3ym8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1o6shjb</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1qqy5u1">
+      <bpmn:incoming>Flow_1rt3lgi</bpmn:incoming>
+      <bpmn:incoming>Flow_1o6shjb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0r2ydvk</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_0qj88tv" name="3">
+      <bpmn:incoming>Flow_0r2ydvk</bpmn:incoming>
+      <bpmn:outgoing>Flow_12tl50k</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_1rwfeyn">
+      <bpmn:incoming>Flow_12tl50k</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1ce1pft" sourceRef="StartEvent_008a1ir" targetRef="Gateway_0kdmsvh" />
+    <bpmn:sequenceFlow id="Flow_1fuambp" sourceRef="Gateway_0kdmsvh" targetRef="Activity_0h5f76m" />
+    <bpmn:sequenceFlow id="Flow_1gx3ym8" sourceRef="Gateway_0kdmsvh" targetRef="Activity_1ixa4gk" />
+    <bpmn:sequenceFlow id="Flow_1rt3lgi" sourceRef="Activity_0h5f76m" targetRef="Gateway_1qqy5u1" />
+    <bpmn:sequenceFlow id="Flow_1o6shjb" sourceRef="Activity_1ixa4gk" targetRef="Gateway_1qqy5u1" />
+    <bpmn:sequenceFlow id="Flow_0r2ydvk" sourceRef="Gateway_1qqy5u1" targetRef="Activity_0qj88tv" />
+    <bpmn:sequenceFlow id="Flow_12tl50k" sourceRef="Activity_0qj88tv" targetRef="Event_1rwfeyn" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1ij0yi5">
+      <bpmndi:BPMNShape id="Participant_1b15pxb_di" bpmnElement="Participant_1b15pxb" isHorizontal="true">
+        <dc:Bounds x="156" y="40" width="802" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_008a1ir">
+        <dc:Bounds x="206" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0kdmsvh_di" bpmnElement="Gateway_0kdmsvh" isMarkerVisible="true">
+        <dc:Bounds x="295" y="75" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0h5f76m_di" bpmnElement="Activity_0h5f76m">
+        <dc:Bounds x="400" y="60" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ixa4gk_di" bpmnElement="Activity_1ixa4gk">
+        <dc:Bounds x="400" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1qqy5u1_di" bpmnElement="Gateway_1qqy5u1" isMarkerVisible="true">
+        <dc:Bounds x="555" y="75" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qj88tv_di" bpmnElement="Activity_0qj88tv">
+        <dc:Bounds x="660" y="60" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rwfeyn_di" bpmnElement="Event_1rwfeyn">
+        <dc:Bounds x="822" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1ce1pft_di" bpmnElement="Flow_1ce1pft">
+        <di:waypoint x="242" y="100" />
+        <di:waypoint x="295" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fuambp_di" bpmnElement="Flow_1fuambp">
+        <di:waypoint x="345" y="100" />
+        <di:waypoint x="400" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gx3ym8_di" bpmnElement="Flow_1gx3ym8">
+        <di:waypoint x="320" y="125" />
+        <di:waypoint x="320" y="210" />
+        <di:waypoint x="400" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rt3lgi_di" bpmnElement="Flow_1rt3lgi">
+        <di:waypoint x="500" y="100" />
+        <di:waypoint x="555" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o6shjb_di" bpmnElement="Flow_1o6shjb">
+        <di:waypoint x="500" y="210" />
+        <di:waypoint x="580" y="210" />
+        <di:waypoint x="580" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0r2ydvk_di" bpmnElement="Flow_0r2ydvk">
+        <di:waypoint x="605" y="100" />
+        <di:waypoint x="660" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12tl50k_di" bpmnElement="Flow_12tl50k">
+        <di:waypoint x="760" y="100" />
+        <di:waypoint x="822" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+<diagbp>{
+  "processInstances": [
+      {
+          "type": "A",
+          "count": "3"
+      }
+  ],
+  "startDateTime": "2024-05-16T15:14:09",
+  "arrivalRateDistribution": {
+      "type": "FIXED",
+      "mean": "0",
+      "arg1": "",
+      "arg2": "",
+      "timeUnit": "seconds"
+  },
+  "timetables": [
+      {
+          "name": "tt1",
+          "rules": [
+              {
+                  "fromTime": "10:00:00",
+                  "toTime": "19:00:00",
+                  "fromWeekDay": "MONDAY",
+                  "toWeekDay": "SATURDAY"
+              }
+          ]
+      }
+  ],
+  "resources": [
+      {
+          "name": "res1",
+          "totalAmount": "2",
+          "costPerHour": "0",
+          "timetableName": "tt1",
+          "setupTime": {
+            "type": "",
+            "mean": "",
+            "arg1": "",
+            "arg2": "",
+            "timeUnit": ""
+        },
+          "maxUsage": ""
+      },
+      {
+          "name": "macchinario",
+          "totalAmount": "1",
+          "costPerHour": "10",
+          "timetableName": "tt1",
+          "setupTime": {
+              "type": "FIXED",
+              "mean": "10",
+              "arg1": "",
+              "arg2": "",
+              "timeUnit": "seconds"
+          },
+          "maxUsage": "5"
+      }
+  ],
+  "elements": [
+      {
+          "elementId": "Activity_0h5f76m",
+          "worklistId": "1",
+          "fixedCost": "0",
+          "costThreshold": "",
+          "durationDistribution": {
+              "type": "fixed",
+              "mean": "1",
+              "arg1": "",
+              "arg2": "",
+              "timeUnit": "seconds"
+          },
+          "durationThreshold": "",
+          "durationThresholdTimeUnit": "",
+          "resourceIds": [
+              {
+                  "resourceName": "res1",
+                  "amountNeeded": "1",
+                  "groupId": "1"
+              },
+              {
+                  "resourceName": "macchinario",
+                  "amountNeeded": "1",
+                  "groupId": "1"
+              }
+          ]
+      },
+      {
+          "elementId": "Activity_1ixa4gk",
+          "worklistId": "1",
+          "fixedCost": "",
+          "costThreshold": "",
+          "durationDistribution": {
+              "type": "fixed",
+              "mean": "1",
+              "arg1": "",
+              "arg2": "",
+              "timeUnit": "seconds"
+          },
+          "durationThreshold": "",
+          "durationThresholdTimeUnit": "",
+          "resourceIds": [
+              {
+                  "resourceName": "res1",
+                  "amountNeeded": "1",
+                  "groupId": "1"
+              },
+              {
+                  "resourceName": "macchinario",
+                  "amountNeeded": "1",
+                  "groupId": "1"
+              }
+          ]
+      },
+      {
+          "elementId": "Activity_0qj88tv",
+          "worklistId": "",
+          "fixedCost": "",
+          "costThreshold": "",
+          "durationDistribution": {
+              "type": "fixed",
+              "mean": "1",
+              "arg1": "",
+              "arg2": "",
+              "timeUnit": "seconds"
+          },
+          "durationThreshold": "",
+          "durationThresholdTimeUnit": "",
+          "resourceIds": [
+              {
+                  "resourceName": "res1",
+                  "amountNeeded": "1",
+                  "groupId": "1"
+              }
+          ]
+      }
+  ],
+  "sequenceFlows": [
+      {
+          "elementId": "Flow_1fuambp",
+          "executionProbability": "0.5",
+          "types": []
+      },
+      {
+          "elementId": "Flow_1gx3ym8",
+          "executionProbability": "0.5",
+          "types": []
+      }
+  ],
+  "catchEvents": {},
+  "logging_opt": 1
+}</diagbp>
+</bpmn:definitions>

@@ -1,0 +1,29 @@
+services:
+  diagbp:
+    build:
+      context: ./
+    volumes:   
+      - uploads:/app/shared
+      - logs:/app/logs
+      - json:/app/json
+      - download:/app/download
+    restart: unless-stopped
+
+  interface:
+    build:
+      context: ./interface
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+      - json:/app/json
+      - download:/app/download
+    ports:
+      - "5000:5000"
+    depends_on:
+      - diagbp
+
+volumes:
+  uploads:
+  logs:
+  json:
+  download:

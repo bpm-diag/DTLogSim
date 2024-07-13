@@ -1,0 +1,302 @@
+{
+    "diagram_attributes": {
+        "id": "BPMNDiagram_1",
+        "name": ""
+    },
+    "plane_attributes": {
+        "id": "BPMNPlane_1",
+        "bpmnElement": "Collaboration_1sc7sh0"
+    },
+    "sequence_flows": {
+        "Flow_1sx6vzu": {
+            "name": "",
+            "sourceRef": "Event_1njp3xz",
+            "targetRef": "Activity_12afiek"
+        },
+        "Flow_0gk5xyl": {
+            "name": "",
+            "sourceRef": "Activity_12afiek",
+            "targetRef": "Event_1go337f"
+        },
+        "Flow_0zdt0sg": {
+            "name": "",
+            "sourceRef": "Gateway_01s1pgm",
+            "targetRef": "Activity_10x08n3"
+        },
+        "Flow_1atxssx": {
+            "name": "",
+            "sourceRef": "Activity_10x08n3",
+            "targetRef": "Gateway_1ngxc9b"
+        },
+        "Flow_1nqsh1h": {
+            "name": "",
+            "sourceRef": "Gateway_1ngxc9b",
+            "targetRef": "Activity_14rjj9v"
+        },
+        "Flow_0bvtaqu": {
+            "name": "",
+            "sourceRef": "Gateway_1ngxc9b",
+            "targetRef": "Activity_0uqn82h"
+        },
+        "Flow_1kn2x5s": {
+            "name": "",
+            "sourceRef": "Activity_0qykc8o",
+            "targetRef": "Gateway_0xussxu"
+        },
+        "Flow_0st4cij": {
+            "name": "",
+            "sourceRef": "Activity_1ijxuyk",
+            "targetRef": "Gateway_0xussxu"
+        },
+        "Flow_1r9ngs9": {
+            "name": "",
+            "sourceRef": "Gateway_0xussxu",
+            "targetRef": "Gateway_0a5f12j"
+        },
+        "Flow_05wu31n": {
+            "name": "",
+            "sourceRef": "StartEvent_09cyjfc",
+            "targetRef": "Gateway_01s1pgm"
+        },
+        "Flow_0d86tug": {
+            "name": "",
+            "sourceRef": "Gateway_0a5f12j",
+            "targetRef": "Gateway_01s1pgm"
+        },
+        "Flow_16n1wa9": {
+            "name": "",
+            "sourceRef": "Gateway_0a5f12j",
+            "targetRef": "Event_1b9cqpn"
+        },
+        "Flow_1nob91q": {
+            "name": "",
+            "sourceRef": "Activity_14rjj9v",
+            "targetRef": "Activity_0qykc8o"
+        },
+        "Flow_1ur494q": {
+            "name": "",
+            "sourceRef": "Activity_0uqn82h",
+            "targetRef": "Activity_1ijxuyk"
+        },
+        "Flow_1o7qnb3": {
+            "name": "",
+            "sourceRef": "Event_0pg18xv",
+            "targetRef": "Activity_182s0e0"
+        },
+        "Flow_1awl866": {
+            "name": "",
+            "sourceRef": "Activity_182s0e0",
+            "targetRef": "Event_016qlk7"
+        },
+        "Flow_10o3gaz": {
+            "name": "",
+            "sourceRef": "Event_016qlk7",
+            "targetRef": "Event_0iqs5ri"
+        }
+    },
+    "collaboration": {
+        "id": "Collaboration_1sc7sh0",
+        "participants": {
+            "Participant_0u94lq8": {
+                "name": "main",
+                "processRef": "Process_1eu3tym",
+                "isHorizontal": "true",
+                "width": "1350",
+                "height": "380",
+                "x": "160",
+                "y": "40"
+            },
+            "Participant_07b5w7o": {
+                "name": "second",
+                "processRef": "Process_0ylak8v",
+                "isHorizontal": "true",
+                "width": "1340",
+                "height": "250",
+                "x": "170",
+                "y": "470"
+            },
+            "Participant_0wzebvs": {
+                "name": "black",
+                "processRef": "Process_15u79g0",
+                "isHorizontal": "true",
+                "width": "1250",
+                "height": "190",
+                "x": "200",
+                "y": "770"
+            }
+        },
+        "messageFlows": {
+            "Flow_126n47f": {
+                "id": "Flow_126n47f",
+                "name": "",
+                "sourceRef": "Activity_10x08n3",
+                "targetRef": "Event_0pg18xv"
+            },
+            "Flow_1c3cjet": {
+                "id": "Flow_1c3cjet",
+                "name": "",
+                "sourceRef": "Activity_182s0e0",
+                "targetRef": "Activity_0qykc8o"
+            }
+        }
+    },
+    "process_elements": {
+        "Process_1eu3tym": {
+            "name": "",
+            "isClosed": "false",
+            "isExecutable": "false",
+            "processType": "None",
+            "node_ids": [
+                "Activity_10x08n3",
+                "Activity_14rjj9v",
+                "Activity_0qykc8o",
+                "Activity_1ijxuyk",
+                "Gateway_0xussxu",
+                "StartEvent_09cyjfc",
+                "Gateway_01s1pgm",
+                "Gateway_0a5f12j",
+                "Event_1b9cqpn",
+                "Activity_0uqn82h",
+                "Gateway_1ngxc9b"
+            ],
+            "node_details": {
+                "Activity_10x08n3": {
+                    "name": "main_1",
+                    "type": "task",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Activity_14rjj9v": {
+                    "name": "par11",
+                    "type": "task",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Activity_0qykc8o": {
+                    "name": "par12",
+                    "type": "task",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Activity_1ijxuyk": {
+                    "name": "par22",
+                    "type": "task",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Gateway_0xussxu": {
+                    "name": "close parallel",
+                    "type": "parallelGateway",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "StartEvent_09cyjfc": {
+                    "name": "",
+                    "type": "startEvent",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Gateway_01s1pgm": {
+                    "name": "close loop",
+                    "type": "exclusiveGateway",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Gateway_0a5f12j": {
+                    "name": "open loop",
+                    "type": "exclusiveGateway",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Event_1b9cqpn": {
+                    "name": "",
+                    "type": "endEvent",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Activity_0uqn82h": {
+                    "name": "par21 (subproc)",
+                    "type": "subProcess",
+                    "subtype": null,
+                    "attached_to": null,
+                    "subprocess_details": {
+                        "Event_1njp3xz": {
+                            "name": "",
+                            "type": "startEvent",
+                            "subtype": null
+                        },
+                        "Activity_12afiek": {
+                            "name": "sub_1",
+                            "type": "task",
+                            "subtype": null
+                        },
+                        "Event_1go337f": {
+                            "name": "",
+                            "type": "endEvent",
+                            "subtype": null
+                        }
+                    }
+                },
+                "Gateway_1ngxc9b": {
+                    "name": "Parallel open",
+                    "type": "parallelGateway",
+                    "subtype": null,
+                    "attached_to": null
+                }
+            }
+        },
+        "Process_0ylak8v": {
+            "name": "",
+            "isClosed": "false",
+            "isExecutable": "false",
+            "processType": "None",
+            "node_ids": [
+                "Event_0pg18xv",
+                "Activity_182s0e0",
+                "Event_0iqs5ri",
+                "Event_016qlk7",
+                "DataObject_0syl5yz"
+            ],
+            "node_details": {
+                "Event_0pg18xv": {
+                    "name": "",
+                    "type": "startEvent",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Activity_182s0e0": {
+                    "name": "sec_1",
+                    "type": "task",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "Event_0iqs5ri": {
+                    "name": "msg end 2_1",
+                    "type": "endEvent",
+                    "subtype": "messageEventDefinition",
+                    "attached_to": null
+                },
+                "Event_016qlk7": {
+                    "name": "msg2_1",
+                    "type": "intermediateThrowEvent",
+                    "subtype": null,
+                    "attached_to": null
+                },
+                "DataObject_0syl5yz": {
+                    "name": "",
+                    "type": "dataObject",
+                    "subtype": null,
+                    "attached_to": null
+                }
+            }
+        },
+        "Process_15u79g0": {
+            "name": "",
+            "isClosed": "false",
+            "isExecutable": "false",
+            "processType": "None",
+            "node_ids": [],
+            "node_details": {}
+        }
+    }
+}

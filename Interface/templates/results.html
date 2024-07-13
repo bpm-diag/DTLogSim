@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <style>
+        /* Add custom styles here if needed */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Simulation Complete!</h1>
+        <p class="text-center">Your simulation is complete. Download the logs below:</p>
+        <div class="text-center">
+            <a href="{{ url_for('download_logs') }}" class="btn btn-primary">Download Logs</a>
+            <a href="{{ url_for('download_bpmn_with_parameters') }}" class="btn btn-secondary">Download BPMN with parameters</a>
+            <a href="{{ url_for('download_extra_json') }}" class="btn btn-secondary">Download extra.json</a> 
+        </div>
+        <br><br>
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Go back home</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</body>
+</html>

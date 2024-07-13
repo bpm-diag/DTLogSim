@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BPMN Simulation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <h1 class="text-center mb-4">BPMN Simulation</h1>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group my-5">
+                        <label for="bpmn_file">BPMN File:</label><br>
+                        <input type="file" class="form-control-file" id="bpmn_file" name="bpmn_file" required>
+                    </div>
+                    <div class="form-group my-5">
+                        <label for="extra">Extra.json (optional):</label><br>
+                        <input type="file" class="form-control-file" id="extra" name="extra">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Simulate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

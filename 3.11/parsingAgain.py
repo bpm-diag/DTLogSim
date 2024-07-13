@@ -55,10 +55,14 @@ def parse_again():
         for node in process['node_details'].values():
             if node['type'] == 'parallelGateway' and len(node['next']) == 1:
                 node['type'] = 'parallelGateway_close'
+            if node['type'] == 'inclusiveGateway' and len(node['next']) == 1:
+                node['type'] = 'inclusiveGateway_close'
             if 'subprocess_details' in node:
                 for sub_node in node['subprocess_details'].values():
                     if sub_node['type'] == 'parallelGateway' and len(sub_node['next']) == 1:
                         sub_node['type'] = 'parallelGateway_close'
+                    if sub_node['type'] == 'inclusiveGateway' and len(sub_node['next']) == 1:
+                        sub_node['type'] = 'inclusiveGateway_close'
 
 
     # Populate 'previous' based on message flows

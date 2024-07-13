@@ -23,9 +23,9 @@ sys.setrecursionlimit(100000)
 
 
 #Put resourcesOutputConsole and timetableOutputConsole to true if you want the log in console of resources locked/unlocked and timetable management
-resourcesOutputConsole=False
 debug1=False
 debug=False
+resourcesOutputConsole=False
 timetableOutputConsole=False
 costsOutputConsole=True
 logSetupTime=True
@@ -33,8 +33,14 @@ logSetupTime=True
 
 extraLog={}
 
+extraFlag=False
+extraPath="../json/extra.json"
 diagbpPath="../json/diagbp.json"
 bpmnPath="../json/bpmn.json"
+
+if os.path.isfile(extraPath):
+    diagbpPath="../json/extra.json"
+    extraFlag=True
 
 parsingAgain.parse_again()
 
@@ -43,26 +49,26 @@ try:
         bpmn = json.load(file)
 except FileNotFoundError:
     print(f"-----ERROR-----: bpmn file not found")
-    sys.exit()
+    #sys.exit()
 except json.JSONDecodeError:
     print(f"-----ERROR-----: bpmn file bad syntax")
-    sys.exit()
+    #sys.exit()
 except Exception as e:
     print(f"An error occurred: {e}")
-    sys.exit()
+    #sys.exit()
 
 try:
     with open(diagbpPath, "r") as file:
         diagbp = json.load(file) #Simulations parameters
 except FileNotFoundError:
     print(f"-----ERROR-----: simulation parameters not found")
-    sys.exit()
+    #sys.exit()
 except json.JSONDecodeError:
     print(f"-----ERROR-----: simulation parameters bad syntax")
-    sys.exit()
+    #sys.exit()
 except Exception as e:
     print(f"An error occurred: {e}")
-    sys.exit()
+    #sys.exit()
 
 #csv log
 logs_dir = "../logs"
@@ -110,7 +116,8 @@ class Process:
         self.env = env
         self.name = name
         self.process_details = process_details
-        self.stack=[]
+        self.stack=[] #used to save parallel gateways closing pair
+        self.stackInclusive=[] #used to save inclusive gateways closing pair
         self.start_delay = start_delay
         self.instance_type = instance_type
         self.num = num
@@ -257,6 +264,8 @@ class Process:
     def xeslog(self, node_id, status, nodeType):
         if nodeType=="parallelGateway":
             nodeType="parallelGatewayOpen"
+        if nodeType=="inclusiveGateway":
+            nodeType="inclusiveGatewayOpen"
         start_time = datetime.strptime(Process.startDateTime, "%Y-%m-%dT%H:%M:%S")
         current_time = start_time + timedelta(seconds=self.env.now)
         if logging_opt or status=="complete":
@@ -307,6 +316,11 @@ class Process:
             return
     
         if node['type'] == 'startEvent':
+            if node['subtype']=="timerEventDefinition":
+                waitTime = catchEvents[node_id]
+                waitTimeSeconds=timeCalculator.convert_to_seconds(waitTime)
+                self.xeslog(node_id,"start",fullType)
+                yield self.env.timeout(waitTimeSeconds)
             next_node_id = node['next'][0]
             if len(node['previous'])>0:
                 while not all(prev_node in Process.executed_nodes[self.num] for prev_node in node['previous']):
@@ -356,6 +370,9 @@ class Process:
                     grouped_resources[res['groupId']].append((res['resourceName'], int(res['amountNeeded'])))
                 waited={}                                    
                 while True: #iterate till some resources can be allocated
+                    #check if terminate end events happened
+                    if Process.terminateEndEvent[self.num]==True:
+                        return
                     resources_allocated = False
                     i = 0
                     for group_id, resources in grouped_resources.items(): # Check each group of resources
@@ -567,22 +584,63 @@ class Process:
             self.printState(node,node_id,printFlag)
             yield self.env.all_of(events)
             # When all_of is done, proceed with the node after the close
-            # print for parallel close
-            if not printFlag:
-                print(f"#{self.num}|{self.name}: Parallel gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
-            else:
-                print(f"#{self.num}|{self.name}| (inside subprocess): Parallel gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
-            
-
             if self.stack:  # checks if the list is not empty
                 parallel_close_id,next_node_after_parallel = self.stack.pop()
                 self.xeslog(parallel_close_id,"complete",node['type'])
                 yield from self.run_node(next_node_after_parallel, subprocess_node)
+                # print for parallel close                      
+                if not printFlag:
+                    print(f"#{self.num}|{self.name}: {parallel_close_id}, Parallel gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
+                else:
+                    print(f"#{self.num}|{self.name}| (inside subprocess): {parallel_close_id}, Parallel gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
 
         elif node['type'] == 'parallelGateway_close':
             if (node_id, node['next'][0]) not in self.stack:
                 self.stack.append((node_id, node['next'][0]))
             #print(self.stack)
+            return
+
+        elif node['type'] == 'inclusiveGateway':
+            flows_from_inclusive = [(flow_id, flow) for flow_id, flow in bpmn['sequence_flows'].items() if flow['sourceRef'] == node_id]
+            paths_to_take = []
+            for flow_id, flow in flows_from_inclusive:
+                type_matched = False
+                diagbp_flow = next((item for item in diagbp['sequenceFlows'] if item['elementId'] == flow_id), None)
+                if diagbp_flow is not None:
+                    if 'types' in diagbp_flow:
+                        for type_dict in diagbp_flow['types']:
+                            if type_dict['type'] == self.instance_type:
+                                paths_to_take.append(flow['targetRef'])
+                                type_matched = True  # Mark that a type matched
+                                break 
+                    # If the type didn't match, use probability 
+                    if not type_matched: 
+                        probability = float(diagbp_flow['executionProbability'])
+                        if np.random.rand() <= probability: 
+                            paths_to_take.append(flow['targetRef'])
+            events = []
+            for next_node_id in paths_to_take:
+                process = self.env.process(self.run_node(next_node_id, subprocess_node))
+                events.append(process)           
+            self.xeslog(node_id,"complete",node['type'])
+            self.printState(node,node_id,printFlag)
+            yield self.env.all_of(events)
+
+            if self.stackInclusive: 
+                inclusive_close_id,next_node_after_inclusive = self.stackInclusive.pop()
+                self.xeslog(inclusive_close_id,"complete",node['type'])
+                yield from self.run_node(next_node_after_inclusive, subprocess_node)
+
+            if not printFlag:
+                print(f"#{self.num}|{self.name}: {inclusive_close_id}, Inclusive gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
+            else:
+                print(f"#{self.num}|{self.name}| (inside subprocess): {inclusive_close_id}, Inclusive gateway closed. instance_type:{self.instance_type}. time: {self.env.now}.")
+            
+            
+
+        elif node['type'] == 'inclusiveGateway_close':
+            if (node_id, node['next'][0]) not in self.stackInclusive:
+                self.stackInclusive.append((node_id, node['next'][0]))
             return
             
         elif node['type'] == 'subProcess':
@@ -682,7 +740,7 @@ class Process:
                 waitedTimeInEventBasedGateway+=1
 
             self.printState(nextNode,next_node_id,printFlag) # print the state of the intermediate catch event (timer or msg, whatever)
-            self.xeslog(next_node_id,"complete",node['type'])        
+            self.xeslog(next_node_id,"complete",nextNode['type'])        
             yield from self.run_node(nextNodeToVisit, subprocess_node) # now it visits the node 2 times forward (2 times after the eventBasedGateway) because the catches have already been handled
             return
 
@@ -840,14 +898,33 @@ with open('../logs/logExtra.csv', 'w', newline='') as f:
     writer.writerow(combined_dict)
 
 
-pm4py.write_xes(event_log, '../logs/log.xes')
-
+original_stdout = sys.stdout
 try:
-  os.remove(diagbpPath)
+    # Redirect sys.stdout to /dev/null to suppress the output
+    sys.stdout = open(os.devnull, 'w')    
+    # Call the pm4py.write_xes function
+    pm4py.write_xes(event_log, '../logs/log.xes')
+finally:
+    # Close the temporary file and restore the original stdout
+    sys.stdout.close()
+    sys.stdout = original_stdout
+
+
+
+#if not extraFlag:
+try:
+    os.remove(diagbpPath)
 except OSError as e:
-  print(f"Error deleting {diagbpPath}: {e}")
+    print(f"Error deleting {diagbpPath}: {e}")
 
 try:
   os.remove(bpmnPath)
 except OSError as e:
   print(f"Error deleting {bpmnPath}: {e}")
+
+#creazione file flag per indicare terminazione simulazione a interfaccia web
+shared_dir = "../shared"
+flag_file_path = os.path.join(shared_dir, "flag.txt")
+
+with open(flag_file_path, "w+") as f:
+    pass

@@ -223,7 +223,7 @@ def diagbp(diagbpPath, bpmn_dict):
 
     #SEQUENCE FLOWS
     sequence_flows=[]
-    print("-------------------XOR PROBABILITIES----------------------")
+    print("-------------------XOR AND INCLUSIVE GATEWAYS PROBABILITIES----------------------")
     sourceRef_counts = defaultdict(int)
     # Iterate over the sequence_flows and count the occurrences of each sourceRef
     for flow in bpmn_dict['sequence_flows'].values():
@@ -240,7 +240,7 @@ def diagbp(diagbpPath, bpmn_dict):
         targetId=flow["targetRef"]
         sourceName, sourceType, sourceSubType = support[sourceId]
         targetName, targetType, targetSubType = support[targetId]
-        if sourceType=="exclusiveGateway":
+        if sourceType=="exclusiveGateway" or sourceType=="inclusiveGateway":
             sequence_flow={}
             sequence_flow["elementId"]=id
             print(f"\nYou are now inserting data for the sequence flow named '{flowName}' that goes from '{sourceName}' to '{targetName}'")
@@ -262,7 +262,7 @@ def diagbp(diagbpPath, bpmn_dict):
     print("-------------------CATCH EVENTS DURATIONS (excluded messages catch events)----------------------")
     catch_events={}
     for node_id, (name, typee, subtype) in support.items():
-        if typee == 'intermediateCatchEvent' and subtype != 'messageEventDefinition':
+        if (typee == 'intermediateCatchEvent' or (typee=="startEvent" and subtype=="timerEventDefinition")) and subtype != 'messageEventDefinition':
             if subtype=="timerEventDefinition":
                 subtype="timer"
             temp={}

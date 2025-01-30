@@ -18,8 +18,9 @@ import os
 import random
 import time
 
-sys.setrecursionlimit(100000)
+print("Sono in Main")
 
+sys.setrecursionlimit(100000)
 
 
 #Put resourcesOutputConsole and timetableOutputConsole to true if you want the log in console of resources locked/unlocked and timetable management
@@ -27,8 +28,8 @@ debug1=False
 debug=False
 resourcesOutputConsole=False
 timetableOutputConsole=False
-costsOutputConsole=True
-logSetupTime=True
+costsOutputConsole=False
+logSetupTime=False
 
 
 extraLog={}
@@ -37,6 +38,9 @@ extraFlag=False
 extraPath="../json/extra.json"
 diagbpPath="../json/diagbp.json"
 bpmnPath="../json/bpmn.json"
+#extraPath="Interface/json/extra.json"
+#diagbpPath="Interface/json/diagbp.json"
+#bpmnPath="Interface/json/bpmn.json"
 
 if os.path.isfile(extraPath):
     diagbpPath="../json/extra.json"
@@ -75,10 +79,13 @@ logs_dir = "../logs"
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
 csv_file = "../logs/log.csv"
-fields = ['traceId', 'activity', 'timestamp', 'status', 'nodeType', 'poolName','instanceType']
+# add by LR
+fields = ['traceId', 'activity', 'timestamp', 'status', 'nodeType', 'poolName', 'instanceType', 'org:resource', 'fixedCost', 'resourceCost']
+#fields = ['traceId', 'activity', 'timestamp', 'status', 'nodeType', 'poolName','instanceType']
 rows=[]
 logging_opt=diagbp['logging_opt']
-logging_opt = (logging_opt == 1)
+# change by LR
+logging_opt = (logging_opt == "1")
 
 #other glob var
 num_instances = sum(int(instance['count']) for instance in diagbp['processInstances'])
@@ -183,14 +190,27 @@ class Process:
         setup_time = timeCalculator.convert_to_seconds(resource_tuple[4])
         # Update currentUsages
         for i, res_tuple in enumerate(global_resources[resource_name]):
+
+            # add by LR
+            resource_setup_time_info = list()
+
             if res_tuple[0] is resource_tuple[0]:
-                self.xeslog(node_id,"startSetupTime",logg) if usury or instanceCambio else None
+
+                # add by LR
+                resource_setup_time_info.append((resource_name, int(res_tuple[5])))
+                self.xeslog(node_id,"startSetupTime",logg, resource_setup_time_info)
+                #self.xeslog(node_id,"startSetupTime",logg) if usury or instanceCambio else None
+
                 print(f"Cambio usury {resource_tuple[0]} {self.env.now}") if logSetupTime and usury else None
                 print(f"Cambio instance_type {resource_tuple[0]} {self.env.now}") if logSetupTime and instanceCambio else None
                 if instanceCambio or usury:
                     yield self.env.timeout(setup_time)
                     print(f"Fine cambio {resource_tuple[0]} {self.env.now}")
-                self.xeslog(node_id,"endSetupTime",logg) if usury or instanceCambio else None
+
+                # add by LR
+                self.xeslog(node_id,"endSetupTime",logg, resource_setup_time_info)
+                #self.xeslog(node_id,"endSetupTime",logg) if usury or instanceCambio else None
+
                 #update resource by locking resource first
                 with res_tuple[7]:
                     global_resources[resource_name][i] = (
@@ -260,8 +280,10 @@ class Process:
             return True
 
         return False
-
-    def xeslog(self, node_id, status, nodeType):
+    # add by LR
+    def xeslog(self, node_id, status, nodeType, resourceid=None, taskCost=None, resource_cost_hour=None):
+    #def xeslog(self, node_id, status, nodeType):
+        print("-------XESLOG------")
         if nodeType=="parallelGateway":
             nodeType="parallelGatewayOpen"
         if nodeType=="inclusiveGateway":
@@ -269,7 +291,13 @@ class Process:
         start_time = datetime.strptime(Process.startDateTime, "%Y-%m-%dT%H:%M:%S")
         current_time = start_time + timedelta(seconds=self.env.now)
         if logging_opt or status=="complete":
-            rows.append([self.num, node_id, current_time, status, nodeType,self.name,self.instance_type],)
+            # add by LR
+            act_name = self.process_details['node_details'][node_id].get('name', None)
+            if not act_name:
+                rows.append([self.num, node_id, current_time, status, nodeType,self.name,self.instance_type,resourceid,taskCost,resource_cost_hour],)
+            else:
+                rows.append([self.num, act_name, current_time, status, nodeType,self.name,self.instance_type,resourceid,taskCost,resource_cost_hour],)
+            #rows.append([self.num, node_id, current_time, status, nodeType,self.name,self.instance_type],)
 
     def printState(self, node, node_id, inSubProcess):
         node_copy = node.copy() #to avoid changing data in node due to the first if
@@ -303,6 +331,7 @@ class Process:
 
 
     def run_node(self, node_id, subprocess_node=None):
+
         #if we are in a subprocess then the data is saved in a different section of bpmn.json (that has been saved to process_details)
         if subprocess_node is None:
             node = self.process_details['node_details'][node_id]
@@ -360,6 +389,11 @@ class Process:
 
 
             #RESOURCES zone
+
+            # add by LR
+            resourceid_for_task = list()
+            resource_cost_hour = list()
+
             taskNeededResources = task_resources[node_id]
             worklist_id = tasks_worklists[node_id]
             if taskNeededResources: #if the task needs some resources
@@ -471,13 +505,22 @@ class Process:
                                         (req.resource, cost_per_hour, timetable_name, last_instance, setup_time, max_usages, current_usages,lock)
                                     )
 
+                                    # add by LR
+                                    #resourceid_for_task.append(resource_name)
+
                             for resource_name, req, cost_per_hour, resourceSimpy,mode in requests:  # Extract elements from the tuple
                                 #update global_resources 2 cases: 1) self.instance.type is different and then throw setupTime 2) same instanceType, check usage
                                 #mode can either be, increment, instanceTypeChange
                                 yield from self.update_resources(req.resource, mode,resource_name, node_id)
                                 yield req
 
+                                # add by LR
+                                #if not worklist_id:
+                                resourceid_for_task.append(resource_name)
+                                resource_cost_hour.append(cost_per_hour)
+
                                 if resourcesOutputConsole:
+                                    
                                     print(f"{node_id}|Resource locked: {resource_name} ({req.resource}), Time: {self.env.now} #{self.num}")                          
                             break  # Break the loop as resources are allocated
                         else:
@@ -492,8 +535,10 @@ class Process:
                         break  # Break the while loop as resources are allocated
             #END resources
 
-
+            # add by LR
+            #self.xeslog(node_id,"assign",node['type'],resourceid_for_task)
             self.xeslog(node_id,"assign",node['type'])
+
             yield self.env.timeout(taskTime)
             
             #EXCEPTIONS check, the check was already done before but it might have happened some stuff during the timeout:
@@ -514,8 +559,8 @@ class Process:
                         return
                 if Process.subprocessTerminate[self.num][subprocess_node]==True: 
                     return 
+                    
 
-            self.xeslog(node_id,"complete",node['type'])
             Process.executed_nodes[self.num].add(node_id)
             self.printState(node,node_id,printFlag)
             next_node_id = node['next'][0]
@@ -524,6 +569,10 @@ class Process:
                 totalCost[self.num] += float(taskCost)
                 if self.costThresholds[node_id] is not None:
                     self.costThresholds[node_id]-=float(taskCost)
+            
+            # add by LR
+            self.xeslog(node_id,"complete",node['type'],resourceid_for_task,taskCost,resource_cost_hour)
+            #self.xeslog(node_id,"complete",node['type'])
             
             # Release resources
             if taskNeededResources:
@@ -542,12 +591,17 @@ class Process:
 
 
 
-
+        # add by LR , modify by LR
         elif node['type'] == 'exclusiveGateway':
+            print("Gateway Code Debug")
             # Get the flows from bpmn.json that start from the current XOR
             flows_from_xor = [(flow_id, flow) for flow_id, flow in bpmn['sequence_flows'].items() if flow['sourceRef'] == node_id]
             # Create a dictionary mapping target nodes to their probabilities
             node_probabilities = {}
+            
+            # add by LR
+            node_probabilities_to_delete = {}
+            redistribute_probabilities = False
             forced_flow_target = None
             for flow_id, flow in flows_from_xor:
                 # Find the corresponding flow in diagbp.json
@@ -556,12 +610,58 @@ class Process:
                     node_probabilities[flow['targetRef']] = float(diagbp_flow['executionProbability'])
                     # Check if 'types' field exists and if it matches with self.instance_type (to force the current instance into his xor based on the instance type)
                     if 'types' in diagbp_flow:
+                    #if diagbp_flow['types']:
+
+                        # add by LR
+                        print("Target: ", flow['targetRef'])
+                        print("Diag Flow: ", diagbp_flow['types'])
+                        bool_red = False
                         for type_dict in diagbp_flow['types']:
+                            bool_red = False
+                            print("Type dict: ", type_dict['type'])
+                            print("Instance Types: ", self.instance_type)
                             if type_dict['type'] == self.instance_type:
                                 forced_flow_target = flow['targetRef']
+                                redistribute_probabilities = False
+                                bool_red = False
                                 break
+                            else:
+                                bool_red = True
+                        if bool_red:
+                            #del node_probabilities[flow['targetRef']]
+                            node_probabilities_to_delete[flow['targetRef']] = float(diagbp_flow['executionProbability'])
+                            redistribute_probabilities = True
+                    #else:
+                    #    node_probabilities[flow['targetRef']] = float(diagbp_flow['executionProbability'])
                 if forced_flow_target is not None:
                     break
+
+            # add by LR
+            print("Node Probabilities: ", node_probabilities)
+            print("Forced Flow Target: ", forced_flow_target)
+            if redistribute_probabilities:
+                print("Redistribute Probabilities: \n")
+                print(node_probabilities_to_delete)
+
+                for key in node_probabilities_to_delete:
+                    if key in node_probabilities:
+                        del node_probabilities[key]
+
+                remaining_sum = sum(node_probabilities.values())
+                print("Remaining Sum: ", remaining_sum)
+
+                for key in node_probabilities:
+                    node_probabilities[key] = round(node_probabilities[key] / remaining_sum, 2)
+                
+                rounded_sum = sum(node_probabilities.values())
+                print("Rounded Sum: ", rounded_sum)
+
+                if rounded_sum != 1:
+                    first_key = list(node_probabilities.keys())[0]
+                    node_probabilities[first_key] += (1 - rounded_sum)
+
+                print("New Node Probabilities: ", node_probabilities)
+            
             # Check if node_probabilities is empty, if yes then the xor has only one next elem. else if there is a forced target use it, else pick it at random.
             if not node_probabilities:
                 next_node_id = node['next'][0]
@@ -823,6 +923,14 @@ def simulate_bpmn(bpmn_dict):
 
         for participant_id, participant in bpmn_dict['collaboration']['participants'].items():
             process_details = bpmn_dict['process_elements'][participant['processRef']]
+
+            print("PROCESS_DETAILS: ", process_details)
+            print("NODE")
+            for node_id, node in process_details['node_details'].items():
+                print(node_id)
+                print(node)
+                print("---")
+                
             # for each instance a class Process is created:
             Process(env, participant['name'], process_details,i+1, delays[i], instance_type)
 
